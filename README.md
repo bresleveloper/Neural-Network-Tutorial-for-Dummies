@@ -3,6 +3,13 @@
 
 this project is about to demonstrate how neural networks work.
 
+based on [How to Create a Neural Network](https://www.youtube.com/watch?v=hfMk-kjRv4c) by 
+[SebastianLague](https://www.youtube.com/@SebastianLague)
+
+
+[git repo here](https://github.com/bresleveloper/Neural-Network-Tutorial-for-Dummies)
+
+
 ## pages / lessions
 
 [Page 1 Link](https://bresleveloper.github.io/Neural-Network-Tutorial-for-Dummies/html/01_rotation_weights.html) - **the 1st page**  is about just showing a "map" of items that needs cognitive decision for categorizing, most basic Neural Network with only inputs and outputs
