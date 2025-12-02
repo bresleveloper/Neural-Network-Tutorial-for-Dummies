@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Basics - Hidden Layers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            line-height: 1.8;
+            padding: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: #4fc3f7;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            color: #81d4fa;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: normal;
+        }
+
+        .intro {
+            background: #16213e;
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+            border-left: 6px solid #4fc3f7;
+            font-size: 2.0rem;
+        }
+
+        .intro p {
+            margin-bottom: 1.5rem;
+        }
+
+        .intro p:last-child {
+            margin-bottom: 0;
+        }
+
+        .highlight-safe {
+            color: #64b5f6;
+            font-weight: bold;
+        }
+
+        .highlight-poison {
+            color: #ef5350;
+            font-weight: bold;
+        }
+
+        .code-section {
+            background: #0f0f23;
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+            overflow-x: auto;
+        }
+
+        .code-section h3 {
+            color: #4fc3f7;
+            margin-bottom: 1.5rem;
+            font-size: 3rem;
+        }
+
+        pre {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1.8rem;
+            line-height: 1.6;
+        }
+
+        .comment { color: #6a9955; }
+        .keyword { color: #569cd6; }
+        .type { color: #4ec9b0; }
+        .function { color: #dcdcaa; }
+        .number { color: #b5cea8; }
+        .variable { color: #9cdcfe; }
+        .operator { color: #d4d4d4; }
+        .highlight-new {
+            background: rgba(239, 83, 80, 0.3);
+            border: 1px solid #ef5350;
+            border-radius: 4px;
+            padding: 0 4px;
+        }
+
+        .visualization-container {
+            position: relative;
+            background: #16213e;
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .graph-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        #graph {
+            border-radius: 12px;
+            display: block;
+        }
+
+        .weights-panel {
+            top: 30px;
+            right: 30px;
+            background: rgba(30, 30, 50, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            width: 48%;
+        }
+
+        .weight-control label {
+            display: block;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+
+        .weights-panel h4 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 1.6rem;
+        }
+
+        .weight-control {
+            margin-bottom: 18px;
+        }
+
+
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-row span {
+            font-size: 1.1rem;
+            color: #888;
+            min-width: 28px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 10px;
+            -webkit-appearance: none;
+            background: #444;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #4fc3f7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #4fc3f7;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .weight-value {
+            font-size: 1.2rem;
+            color: #4fc3f7;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .axis-labels {
+            position: absolute;
+            pointer-events: none;
+            bottom: 0;
+            left: 0;
+        }
+
+        .x-label {
+            position: absolute;
+            bottom: -55px;
+            left: 80px;
+            color: #aaa;
+            font-size: 1.4rem;
+            white-space: nowrap;
+        }
+
+        .y-label {
+            position: absolute;
+            left: -145px;
+            top: -150px;
+            transform: translateY(-50%) rotate(-90deg);
+            color: #aaa;
+            font-size: 1.4rem;
+            white-space: nowrap;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .legend-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.safe { background: #64b5f6; }
+        .legend-dot.poison { background: #ef5350; }
+
+        .nn-diagram {
+            background: #0f0f23;
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+
+        }
+
+        .nn-diagram h3 {
+            color: #4fc3f7;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 3rem;
+        }
+
+        .nn-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5rem;
+            padding: 2rem;
+        }
+
+        .nn-layer {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .nn-node {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: #2a2a4a;
+            border: 5px solid #4fc3f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: #fff;
+            text-align: center;
+        }
+
+        .nn-layer-label {
+            font-size: 2.4rem;
+            color: #888;
+            text-align: center;
+        }
+
+        .nn-arrow {
+            color: #666;
+            font-size: 3rem;
+        }
+
+        .nn-weights-label {
+            text-align: center;
+            color: #888;
+            font-size: 2.3rem;
+        }
+
+        .decision-rule {
+            text-align: center;
+            padding: 1.5rem;
+            background: #1a1a3e;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            font-size: 2.3rem;
+        }
+
+        .decision-rule p {
+            margin: 0.8rem 0;
+        }
+
+        .problem-section {
+            background: linear-gradient(135deg, #2d1f3d 0%, #1a1a2e 100%);
+            padding: 3rem;
+            border-radius: 16px;
+            margin-top: 3rem;
+            border: 3px solid #ef5350;
+            text-align: center;
+        }
+
+        .problem-section h3 {
+            color: #ef5350;
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .problem-section p {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: #ddd;
+        }
+
+        .problem-section .solution-teaser {
+            font-size: 2.2rem;
+            color: #4fc3f7;
+            margin-top: 2rem;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Neural Network Basics</h1>
+        <h2>Adding Hidden Layers to Curve the Boundary</h2>
+
+        <div class="intro">
+            <p>
+                Previously we could only draw a <strong>straight line</strong>. Now we add a
+                <strong>hidden layer</strong> between inputs and outputs.
+            </p>
+            <p>
+                Each hidden node creates its own linear boundary. Combined with an
+                <strong>activation function</strong>, we can create curved and angular boundaries!
+            </p>
+            <p>
+                You can add endless hidden layers with endless nodes and change the activation functions
+            </p>
+        </div>
+
+        <div class="nn-diagram">
+            <h3>The Neural Network Structure</h3>
+            <div style="text-align: center; padding: 1rem;">
+                <img src="../img/03/03_nn_diagram.png" alt="Neural Network with Hidden Layer" style="max-width: 100%; height: auto;">
+            </div>
+            <div class="decision-rule">
+                <p><strong>Network: 2 inputs → 3 hidden → 2 outputs</strong></p>
+                <p style="margin-top: 1rem;">Each layer: output = activation(inputs × weights + biases)</p>
+            </div>
+        </div>
+
+        <div class="nn-diagram">
+            <h3>Activation Functions</h3>
+            <div style="display: flex; justify-content: center; gap: 3rem; padding: 1rem; flex-wrap: wrap;">
+                <div style="text-align: center; width: 48%;">
+                    <img src="../img/03/03_d_step.png" alt="Step Function" style=" height: auto; border-radius: 8px;">
+                    <p style="margin-top: 1rem; color: #aaa;">Sharp corners</p>
+                </div>
+                <div style="text-align: center;width: 48%;">
+                    <img src="../img/03/03_d_sigmoid.png" alt="Sigmoid Function" style="height: auto; border-radius: 8px;">
+                    <p style="margin-top: 1rem; color: #aaa;">Smooth curves</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <h3>The Classification Code</h3>
+            <pre><code><span class="comment">// Activation functions</span>
+<span class="keyword">function</span> <span class="function">step</span>(<span class="variable">x</span>) { <span class="keyword">return</span> <span class="variable">x</span> <span class="operator">></span> <span class="number">0</span> <span class="operator">?</span> <span class="number">1</span> <span class="operator">:</span> <span class="number">0</span>; }
+<span class="keyword">function</span> <span class="function">sigmoid</span>(<span class="variable">x</span>) { <span class="keyword">return</span> <span class="number">1</span> <span class="operator">/</span> (<span class="number">1</span> <span class="operator">+</span> Math.<span class="function">exp</span>(<span class="operator">-</span><span class="variable">x</span>)); }
+
+<span><span class="comment">// Create the layer</span>
+<span class="keyword">class</span> <span class="type">Layer</span>(<span class="variable">numNodesIn</span>, <span class="variable">numNodesOut</span>) {
+    <span class="keyword">this</span>.<span class="variable">numNodesIn</span> <span class="operator">=</span> <span class="variable">numNodesIn</span>;
+    <span class="keyword">this</span>.<span class="variable">numNodesOut</span> <span class="operator">=</span> <span class="variable">numNodesOut</span>;
+    <span class="variable">weights</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="type">Array</span>[<span class="variable">numNodesIn</span>, <span class="variable">numNodesOut</span>];
+    <span class="variable">biases</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="type">Array</span>[<span class="variable">numNodesOut</span>];
+
+    <span class="comment">// Calculate the output of the layer</span>
+    <span class="function">CalculateOutputs</span>(<span class="variable">inputs</span>) {
+        <span class="variable">activations</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="type">Array</span>[<span class="variable">numNodesOut</span>];
+        <span class="keyword">for</span> (<span class="variable">nodeOut</span> <span class="operator">=</span> <span class="number">0</span>; <span class="variable">nodeOut</span> <span class="operator">&lt;</span> <span class="variable">numNodesOut</span>; <span class="variable">nodeOut</span><span class="operator">++</span>) {
+            <span class="variable">weightedInput</span> <span class="operator">=</span> <span class="variable">biases</span>[<span class="variable">nodeOut</span>];
+            <span class="keyword">for</span> (<span class="variable">nodeIn</span> <span class="operator">=</span> <span class="number">0</span>; <span class="variable">nodeIn</span> <span class="operator">&lt;</span> <span class="variable">numNodesIn</span>; <span class="variable">nodeIn</span><span class="operator">++</span>) {
+                <span class="variable">weightedInput</span> <span class="operator">+=</span> <span class="variable">inputs</span>[<span class="variable">nodeIn</span>] <span class="operator">*</span> <span class="variable">weights</span>[<span class="variable">nodeIn</span>, <span class="variable">nodeOut</span>];
+            }
+            <span class="variable">activations</span>[<span class="variable">nodeOut</span>] <span class="operator">=</span> <span class="function">ActivationFunction</span>(<span class="variable">weightedInput</span>);
+        }
+        <span class="keyword">return</span> <span class="variable">activations</span>;
+    }
+}
+
+<span class="comment">// Neural Network: chains layers together</span>
+<span class="keyword">class</span> <span class="type">NeuralNetwork</span>(<span class="variable">layerSizes</span>[]) {
+    <span class="variable">layers</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="type">Layer</span>[<span class="variable">layerSizes</span>.<span class="variable">Length</span> <span class="operator">-</span> <span class="number">1</span>];
+    <span class="keyword">for</span> (<span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; <span class="variable">i</span> <span class="operator">&lt;</span> <span class="variable">layers</span>.<span class="variable">Length</span>; <span class="variable">i</span><span class="operator">++</span>) {
+        <span class="variable">layers</span>[<span class="variable">i</span>] <span class="operator">=</span> <span class="keyword">new</span> <span class="type">Layer</span>(<span class="variable">layerSizes</span>[<span class="variable">i</span>], <span class="variable">layerSizes</span>[<span class="variable">i</span> <span class="operator">+</span> <span class="number">1</span>]);
+    }
+
+    <span class="comment">// Run the inputs through the network</span>
+    <span class="function">CalculateOutputs</span>(<span class="variable">inputs</span>) {
+        <span class="keyword">foreach</span> (<span class="variable">layer</span> <span class="keyword">in</span> <span class="variable">layers</span>) {
+            <span class="variable">inputs</span> <span class="operator">=</span> <span class="variable">layer</span>.<span class="function">CalculateOutputs</span>(<span class="variable">inputs</span>);
+        }
+        <span class="keyword">return</span> <span class="variable">inputs</span>;
+    }
+
+    <span class="comment">// Calculate which output node has the highest value</span>
+    <span class="function">Classify</span>(<span class="variable">inputs</span>) {
+        <span class="variable">outputs</span> <span class="operator">=</span> <span class="function">CalculateOutputs</span>(<span class="variable">inputs</span>);
+        <span class="keyword">return</span> <span class="function">IndexOfMaxValue</span>(<span class="variable">outputs</span>);
+    }
+}</span></code></pre>
+        </div>
+
+        <div class="visualization-container">
+            <!-- RIGHT SIDE: Activation + Layer 2 -->
+            <!-- Activation Toggle -->
+            <div class="weights-panel" style="margin:auto; width: 180px; top: 20px; right: 20px; margin-bottom: 18px; padding: 10px;">
+                <h4 style="font-size: 1.2rem; margin-bottom: 10px;">Activation</h4>
+                <div style="display: flex; gap: 10px; justify-content: center;">
+                    <label style="cursor: pointer;"><input type="radio" name="activation" value="step" checked> Step</label>
+                    <label style="cursor: pointer;"><input type="radio" name="activation" value="sigmoid"> Sigmoid</label>
+                </div>
+            </div>
+            <div class="graph-wrapper">
+
+                <!-- Layer 1: Input → Hidden (LEFT SIDE) -->
+                <div class="weights-panel" style="top: 20px; left: 20px; min-width: 180px; padding: 10px;">
+                    <h4 style="font-size: 1.2rem; margin-bottom: 10px;">Layer 1 (→Hidden)</h4>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l1w00" min="-8" max="8" step="0.1" value="6"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l1w01" min="-8" max="8" step="0.1" value="0"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l1w02" min="-8" max="8" step="0.1" value="5"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l1w10" min="-8" max="8" step="0.1" value="0"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l1w11" min="-8" max="8" step="0.1" value="6"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l1w12" min="-8" max="8" step="0.1" value="5"><span>8</span></div>
+                    </div>
+                    <div style="border-top: 1px solid #444; margin: 6px 0; padding-top: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l1b0" min="-8" max="8" step="0.1" value="-3"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l1b1" min="-8" max="8" step="0.1" value="-3"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l1b2" min="-8" max="8" step="0.1" value="-5"><span>8</span></div>
+                    </div>
+                </div>
+
+
+
+                <!-- Layer 2: Hidden → Output -->
+                <div class="weights-panel" style="top: 100px; right: 20px; min-width: 180px; padding: 10px;">
+                    <h4 style="font-size: 1.2rem; margin-bottom: 10px;">Layer 2 (→Output)</h4>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l2w00" min="-8" max="8" step="0.1" value="-6"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l2w01" min="-8" max="8" step="0.1" value="6"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l2w10" min="-8" max="8" step="0.1" value="-6"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l2w11" min="-8" max="8" step="0.1" value="6"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l2w20" min="-8" max="8" step="0.1" value="-6"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l2w21" min="-8" max="8" step="0.1" value="6"><span>8</span></div>
+                    </div>
+                    <div style="border-top: 1px solid #444; margin: 6px 0; padding-top: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l2b0" min="-8" max="8" step="0.1" value="4"><span>8</span></div>
+                    </div>
+                    <div class="weight-control" style="margin-bottom: 6px;">
+                        <div class="slider-row"><span>-8</span><input type="range" id="l2b1" min="-8" max="8" step="0.1" value="-4"><span>8</span></div>
+                    </div>
+                </div>
+
+                <div class="axis-labels">
+                    <div class="x-label">Spot Size →</div>
+                    <div class="y-label">Spike Length →</div>
+                </div>
+            </div>
+
+            <canvas id="graph" width="1400" height="800"></canvas>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot safe"></div>
+                    <span>Safe Fruit</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot poison"></div>
+                    <span>Poisonous Fruit</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="problem-section" style="border-color: #4fc3f7;">
+            <h3 style="color: #4fc3f7;">Problem Solved!</h3>
+            <p>
+                With a <strong>hidden layer</strong> and <strong>activation functions</strong>,
+                the decision boundary can now be <strong>curved</strong> or <strong>angular</strong>!
+            </p>
+            <p>
+                Try switching between Step (sharp corners) and Sigmoid (smooth curves).
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        const MIN_COORD = -0.05, MAX_COORD = 1.0, COORD_RANGE = MAX_COORD - MIN_COORD;
+        const safeDotColor = '#64b5f6', poisonDotColor = '#ef5350';
+
+        const getVal = id => parseFloat(document.getElementById(id).value);
+
+        // Generate fruits
+        const fruits = [];
+        let seed = 42;
+        const seededRandom = () => { const x = Math.sin(seed++) * 10000; return x - Math.floor(x); };
+        for (let i = 0; i < 100; i++) {
+            const normX = seededRandom(), normY = seededRandom();
+            fruits.push({ normX, normY, safe: Math.sqrt(normX * normX + normY * normY) < 0.5 });
+        }
+
+        function toCanvasX(x) { return ((x - MIN_COORD) / COORD_RANGE) * width; }
+        function toCanvasY(y) { return height - ((y - MIN_COORD) / COORD_RANGE) * height; }
+
+        function draw() {
+            // Get all weights/biases once
+            const w1 = [[getVal('l1w00'), getVal('l1w01'), getVal('l1w02')],
+                        [getVal('l1w10'), getVal('l1w11'), getVal('l1w12')]];
+            const b1 = [getVal('l1b0'), getVal('l1b1'), getVal('l1b2')];
+            const w2 = [[getVal('l2w00'), getVal('l2w01')],
+                        [getVal('l2w10'), getVal('l2w11')],
+                        [getVal('l2w20'), getVal('l2w21')]];
+            const b2 = [getVal('l2b0'), getVal('l2b1')];
+
+            const useSigmoid = document.querySelector('input[name="activation"]:checked').value === 'sigmoid';
+
+            const imageData = ctx.createImageData(width, height);
+            const data = imageData.data;
+            const step = 5;
+
+            for (let cy = 0; cy < height; cy += step) {
+                for (let cx = 0; cx < width; cx += step) {
+                    const x = (cx / width) * COORD_RANGE + MIN_COORD;
+                    const y = ((height - cy) / height) * COORD_RANGE + MIN_COORD;
+
+                    // Layer 1: 2 inputs -> 3 hidden (inlined)
+                    let h0 = b1[0] + x * w1[0][0] + y * w1[1][0];
+                    let h1 = b1[1] + x * w1[0][1] + y * w1[1][1];
+                    let h2 = b1[2] + x * w1[0][2] + y * w1[1][2];
+
+                    if (useSigmoid) {
+                        h0 = 1 / (1 + Math.exp(-h0));
+                        h1 = 1 / (1 + Math.exp(-h1));
+                        h2 = 1 / (1 + Math.exp(-h2));
+                    } else {
+                        h0 = h0 > 0 ? 1 : 0;
+                        h1 = h1 > 0 ? 1 : 0;
+                        h2 = h2 > 0 ? 1 : 0;
+                    }
+
+                    // Layer 2: 3 hidden -> 2 outputs
+                    let o0 = b2[0] + h0 * w2[0][0] + h1 * w2[1][0] + h2 * w2[2][0];
+                    let o1 = b2[1] + h0 * w2[0][1] + h1 * w2[1][1] + h2 * w2[2][1];
+
+                    const pred = o0 > o1 ? 0 : 1;
+                    const r = pred === 0 ? 70 : 165;
+                    const g = pred === 0 ? 130 : 60;
+                    const b = pred === 0 ? 180 : 60;
+
+                    for (let dy = 0; dy < step && cy + dy < height; dy++) {
+                        for (let dx = 0; dx < step && cx + dx < width; dx++) {
+                            const idx = ((cy + dy) * width + (cx + dx)) * 4;
+                            data[idx] = r; data[idx + 1] = g; data[idx + 2] = b; data[idx + 3] = 255;
+                        }
+                    }
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 10; i++) {
+                ctx.beginPath(); ctx.moveTo(width / 10 * i, 0); ctx.lineTo(width / 10 * i, height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, height / 10 * i); ctx.lineTo(width, height / 10 * i); ctx.stroke();
+            }
+
+            // Axes
+            const ox = toCanvasX(0), oy = toCanvasY(0);
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(ox, 0); ctx.lineTo(ox, height); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, oy); ctx.lineTo(width, oy); ctx.stroke();
+
+            // Fruits
+            fruits.forEach(f => {
+                ctx.beginPath();
+                ctx.arc(toCanvasX(f.normX), toCanvasY(f.normY), 8, 0, Math.PI * 2);
+                ctx.fillStyle = f.safe ? safeDotColor : poisonDotColor;
+                ctx.fill();
+            });
+        }
+
+        document.querySelectorAll('input[type="range"], input[type="radio"]').forEach(el => {
+            el.addEventListener('input', draw);
+        });
+
+        draw();
+    </script>
+</body>
+</html>

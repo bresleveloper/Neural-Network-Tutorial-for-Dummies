@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network Basics - Adding Bias</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            line-height: 1.8;
+            padding: 3rem;
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: #4fc3f7;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            color: #81d4fa;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: normal;
+        }
+
+        .intro {
+            background: #16213e;
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+            border-left: 6px solid #4fc3f7;
+            font-size: 2.0rem;
+        }
+
+        .intro p {
+            margin-bottom: 1.5rem;
+        }
+
+        .intro p:last-child {
+            margin-bottom: 0;
+        }
+
+        .highlight-safe {
+            color: #64b5f6;
+            font-weight: bold;
+        }
+
+        .highlight-poison {
+            color: #ef5350;
+            font-weight: bold;
+        }
+
+        .code-section {
+            background: #0f0f23;
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+            overflow-x: auto;
+        }
+
+        .code-section h3 {
+            color: #4fc3f7;
+            margin-bottom: 1.5rem;
+            font-size: 3rem;
+        }
+
+        pre {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 1.8rem;
+            line-height: 1.6;
+        }
+
+        .comment { color: #6a9955; }
+        .keyword { color: #569cd6; }
+        .type { color: #4ec9b0; }
+        .function { color: #dcdcaa; }
+        .number { color: #b5cea8; }
+        .variable { color: #9cdcfe; }
+        .operator { color: #d4d4d4; }
+        .highlight-new {
+            background: rgba(239, 83, 80, 0.3);
+            border: 1px solid #ef5350;
+            border-radius: 4px;
+            padding: 0 4px;
+        }
+
+        .visualization-container {
+            position: relative;
+            background: #16213e;
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .graph-wrapper {
+            position: relative;
+            display: flex;
+            justify-content: center;
+        }
+
+        #graph {
+            border-radius: 12px;
+            display: block;
+        }
+
+        .weights-panel {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(30, 30, 50, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            min-width: 300px;
+        }
+
+        .weight-control label {
+            display: block;
+            font-size: 0.8rem;
+            color: #aaa;
+            margin-bottom: 6px;
+        }
+
+        .weights-panel h4 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 1.6rem;
+        }
+
+        .weight-control {
+            margin-bottom: 18px;
+        }
+
+
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-row span {
+            font-size: 1.1rem;
+            color: #888;
+            min-width: 28px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 10px;
+            -webkit-appearance: none;
+            background: #444;
+            border-radius: 5px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #4fc3f7;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #4fc3f7;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .weight-value {
+            font-size: 1.2rem;
+            color: #4fc3f7;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .axis-labels {
+            position: absolute;
+            pointer-events: none;
+            bottom: 0;
+            left: 0;
+        }
+
+        .x-label {
+            position: absolute;
+            bottom: -55px;
+            left: 80px;
+            color: #aaa;
+            font-size: 1.4rem;
+            white-space: nowrap;
+        }
+
+        .y-label {
+            position: absolute;
+            left: -145px;
+            top: -150px;
+            transform: translateY(-50%) rotate(-90deg);
+            color: #aaa;
+            font-size: 1.4rem;
+            white-space: nowrap;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 4rem;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            font-size: 1.4rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .legend-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+
+        .legend-dot.safe { background: #64b5f6; }
+        .legend-dot.poison { background: #ef5350; }
+
+        .nn-diagram {
+            background: #0f0f23;
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin-bottom: 3rem;
+
+        }
+
+        .nn-diagram h3 {
+            color: #4fc3f7;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 3rem;
+        }
+
+        .nn-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5rem;
+            padding: 2rem;
+        }
+
+        .nn-layer {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .nn-node {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: #2a2a4a;
+            border: 5px solid #4fc3f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: #fff;
+            text-align: center;
+        }
+
+        .nn-layer-label {
+            font-size: 2.4rem;
+            color: #888;
+            text-align: center;
+        }
+
+        .nn-arrow {
+            color: #666;
+            font-size: 3rem;
+        }
+
+        .nn-weights-label {
+            text-align: center;
+            color: #888;
+            font-size: 2.3rem;
+        }
+
+        .decision-rule {
+            text-align: center;
+            padding: 1.5rem;
+            background: #1a1a3e;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+            font-size: 2.3rem;
+        }
+
+        .decision-rule p {
+            margin: 0.8rem 0;
+        }
+
+        .problem-section {
+            background: linear-gradient(135deg, #2d1f3d 0%, #1a1a2e 100%);
+            padding: 3rem;
+            border-radius: 16px;
+            margin-top: 3rem;
+            border: 3px solid #ef5350;
+            text-align: center;
+        }
+
+        .problem-section h3 {
+            color: #ef5350;
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .problem-section p {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: #ddd;
+        }
+
+        .problem-section .solution-teaser {
+            font-size: 2.2rem;
+            color: #4fc3f7;
+            margin-top: 2rem;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Neural Network Basics</h1>
+        <h2>Adding Bias to Move the Decision Boundary</h2>
+
+        <div class="intro">
+            <p>
+                In the previous lesson, we could only <strong>rotate</strong> the decision boundary.
+                It was stuck at the origin! Now we add <strong>bias</strong> values to each output.
+            </p>
+            <p>
+                Bias allows us to <strong>shift</strong> the decision boundary anywhere on the graph.
+                Combined with weights (rotation) and bias (translation), we can now draw any line!
+            </p>
+        </div>
+
+        <div class="nn-diagram">
+            <h3>The Neural Network Structure</h3>
+            <div class="nn-visual">
+                <div>
+                    <div class="nn-layer">
+                        <div class="nn-node">Spot<br>Size</div>
+                        <div class="nn-node">Spike<br>Len</div>
+                    </div>
+                    <div class="nn-layer-label">Inputs</div>
+                </div>
+                <div class="nn-arrow">→</div>
+                <div class="nn-weights-label">
+                    <div>× weights</div>
+                    <div style="margin-top: 0.8rem;">w<sub>1,1</sub> w<sub>1,2</sub></div>
+                    <div>w<sub>2,1</sub> w<sub>2,2</sub></div>
+                </div>
+                <div class="nn-arrow">→</div>
+                <div class="nn-weights-label highlight-new" style="padding: 0.5rem;">
+                    <div>+ biases</div>
+                    <div style="margin-top: 0.5rem;">b<sub>1</sub></div>
+                    <div>b<sub>2</sub></div>
+                </div>
+                <div class="nn-arrow">→</div>
+                <div>
+                    <div class="nn-layer">
+                        <div class="nn-node" style="border-color: #64b5f6;">Safe</div>
+                        <div class="nn-node" style="border-color: #ef5350;">Poison</div>
+                    </div>
+                    <div class="nn-layer-label">Outputs</div>
+                </div>
+            </div>
+            <div class="decision-rule">
+                <p><strong>Decision Rule:</strong></p>
+                <p>output<sub>1</sub> = input<sub>1</sub> × w<sub>1,1</sub> + input<sub>2</sub> × w<sub>2,1</sub> <span class="highlight-new">+ bias<sub>1</sub></span></p>
+                <p>output<sub>2</sub> = input<sub>1</sub> × w<sub>1,2</sub> + input<sub>2</sub> × w<sub>2,2</sub> <span class="highlight-new">+ bias<sub>2</sub></span></p>
+                <p style="margin-top: 1.5rem;">
+                    If output<sub>1</sub> > output<sub>2</sub> → <span class="highlight-safe">Safe</span> |
+                    If output<sub>2</sub> > output<sub>1</sub> → <span class="highlight-poison">Poisonous</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <h3>The Classification Code</h3>
+            <pre><code><span class="comment">// Weight values connecting each input to the outputs</span>
+<span class="keyword">let</span> <span class="variable">weight_1_1</span>, <span class="variable">weight_2_1</span>;  <span class="comment">// → output_1 (safe)</span>
+<span class="keyword">let</span> <span class="variable">weight_1_2</span>, <span class="variable">weight_2_2</span>;  <span class="comment">// → output_2 (poisonous)</span>
+<span class="highlight-new"><span class="comment">// Bias values</span>
+<span class="keyword">let</span> <span class="variable">bias_1</span>, <span class="variable">bias_2</span>;</span>
+
+<span class="comment">// Classifies the given fruit as either safe (0) or poisonous (1)</span>
+<span class="keyword">function</span> <span class="function">classify</span>(<span class="variable">input_1</span>, <span class="variable">input_2</span>) {
+    <span class="keyword">const</span> <span class="variable">output_1</span> = <span class="variable">input_1</span> <span class="operator">*</span> <span class="variable">weight_1_1</span> <span class="operator">+</span> <span class="variable">input_2</span> <span class="operator">*</span> <span class="variable">weight_2_1</span> <span class="highlight-new"><span class="operator">+</span> <span class="variable">bias_1</span></span>;
+    <span class="keyword">const</span> <span class="variable">output_2</span> = <span class="variable">input_1</span> <span class="operator">*</span> <span class="variable">weight_1_2</span> <span class="operator">+</span> <span class="variable">input_2</span> <span class="operator">*</span> <span class="variable">weight_2_2</span> <span class="highlight-new"><span class="operator">+</span> <span class="variable">bias_2</span></span>;
+
+    <span class="comment">// Return 0 if output_1 is greater (safe), otherwise return 1 (poisonous)</span>
+    <span class="keyword">return</span> (<span class="variable">output_1</span> <span class="operator">></span> <span class="variable">output_2</span>) <span class="operator">?</span> <span class="number">0</span> <span class="operator">:</span> <span class="number">1</span>;
+}</code></pre>
+        </div>
+
+        <div class="visualization-container">
+            <div class="graph-wrapper">
+                <canvas id="graph" width="1400" height="800"></canvas>
+                <div class="weights-panel">
+                    <h4>Weights</h4>
+                    <div class="weight-control">
+                        <label>w<sub>1,1</sub> (input₁ → safe)</label>
+                        <div class="slider-row">
+                            <span>-1</span>
+                            <input type="range" id="w11" min="-1" max="1" step="0.01" value="-0.5">
+                            <span>1</span>
+                            <span class="weight-value" id="w11-val">-0.50</span>
+                        </div>
+                    </div>
+                    <div class="weight-control">
+                        <label>w<sub>2,1</sub> (input₂ → safe)</label>
+                        <div class="slider-row">
+                            <span>-1</span>
+                            <input type="range" id="w21" min="-1" max="1" step="0.01" value="-0.5">
+                            <span>1</span>
+                            <span class="weight-value" id="w21-val">-0.50</span>
+                        </div>
+                    </div>
+                    <div class="weight-control">
+                        <label>w<sub>1,2</sub> (input₁ → poison)</label>
+                        <div class="slider-row">
+                            <span>-1</span>
+                            <input type="range" id="w12" min="-1" max="1" step="0.01" value="0.5">
+                            <span>1</span>
+                            <span class="weight-value" id="w12-val">0.50</span>
+                        </div>
+                    </div>
+                    <div class="weight-control">
+                        <label>w<sub>2,2</sub> (input₂ → poison)</label>
+                        <div class="slider-row">
+                            <span>-1</span>
+                            <input type="range" id="w22" min="-1" max="1" step="0.01" value="0.5">
+                            <span>1</span>
+                            <span class="weight-value" id="w22-val">0.50</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="weights-panel" style="top: 480px;">
+                    <h4>Biases</h4>
+                    <div class="weight-control">
+                        <label>bias<sub>1</sub> (→ safe)</label>
+                        <div class="slider-row">
+                            <span>-1</span>
+                            <input type="range" id="b1" min="-1" max="1" step="0.01" value="0">
+                            <span>1</span>
+                            <span class="weight-value" id="b1-val">0.00</span>
+                        </div>
+                    </div>
+                    <div class="weight-control">
+                        <label>bias<sub>2</sub> (→ poison)</label>
+                        <div class="slider-row">
+                            <span>-1</span>
+                            <input type="range" id="b2" min="-1" max="1" step="0.01" value="0">
+                            <span>1</span>
+                            <span class="weight-value" id="b2-val">0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="axis-labels">
+                    <div class="x-label">Spot Size →</div>
+                    <div class="y-label">Spike Length →</div>
+                </div>
+            </div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-dot safe"></div>
+                    <span>Safe Fruit (near origin)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot poison"></div>
+                    <span>Poisonous Fruit (far from origin)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="problem-section" style="border-color: #4fc3f7;">
+            <h3 style="color: #4fc3f7;">Problem Solved!</h3>
+            <p>
+                With <strong>bias</strong>, the line is no longer stuck at the origin.
+                You can now <strong>rotate</strong> (weights) and <strong>move away</strong> (bias) from origin!
+            </p>
+        </div>
+
+        <div class="problem-section">
+            <h3>NEW Problem</h3>
+            <p>
+                <strong>Stuck with linear line!</strong>.
+                You can rotate AND move the line, but you can't curve it! (make in angular)
+            </p>
+            <p class="solution-teaser">
+                We need a <strong>bigger network</strong> to solve this!
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('graph');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        // Coordinate range: small negative zone (~5%) for 360-degree rotation visibility
+        const MIN_COORD = -0.05;
+        const MAX_COORD = 1.0;
+        const COORD_RANGE = MAX_COORD - MIN_COORD;
+
+        // Colors
+        const safeColor = { r: 70, g: 130, b: 180 };      // Steel blue
+        const poisonColor = { r: 165, g: 60, b: 60 };     // Dark red
+        const safeDotColor = '#64b5f6';
+        const poisonDotColor = '#ef5350';
+
+        // Weight sliders
+        const w11Slider = document.getElementById('w11');
+        const w21Slider = document.getElementById('w21');
+        const w12Slider = document.getElementById('w12');
+        const w22Slider = document.getElementById('w22');
+
+        const w11Val = document.getElementById('w11-val');
+        const w21Val = document.getElementById('w21-val');
+        const w12Val = document.getElementById('w12-val');
+        const w22Val = document.getElementById('w22-val');
+
+        // Bias sliders
+        const b1Slider = document.getElementById('b1');
+        const b2Slider = document.getElementById('b2');
+
+        const b1Val = document.getElementById('b1-val');
+        const b2Val = document.getElementById('b2-val');
+
+        // Generate random fruit data points (only in positive values)
+        const fruits = [];
+        const numFruits = 100;
+
+        // Seed random for reproducibility
+        function seededRandom(seed) {
+            const x = Math.sin(seed++) * 10000;
+            return x - Math.floor(x);
+        }
+
+        let seed = 42;
+        for (let i = 0; i < numFruits; i++) {
+            // Generate only in positive range (0 to 1)
+            const normX = seededRandom(seed++);
+            const normY = seededRandom(seed++);
+
+            // Distance from origin determines if safe or poisonous
+            // Safe fruits are CLOSE to origin (bottom-left)
+            // Poisonous fruits are FAR from origin (top-right)
+            const distance = Math.sqrt(normX * normX + normY * normY);
+            const isSafe = distance < 0.5;
+
+            fruits.push({ normX, normY, safe: isSafe });
+        }
+
+        // Classification function
+        function classify(input_1, input_2) {
+            const weight_1_1 = parseFloat(w11Slider.value);
+            const weight_2_1 = parseFloat(w21Slider.value);
+            const weight_1_2 = parseFloat(w12Slider.value);
+            const weight_2_2 = parseFloat(w22Slider.value);
+            const bias_1 = parseFloat(b1Slider.value);
+            const bias_2 = parseFloat(b2Slider.value);
+
+            const output_1 = input_1 * weight_1_1 + input_2 * weight_2_1 + bias_1;
+            const output_2 = input_1 * weight_1_2 + input_2 * weight_2_2 + bias_2;
+
+            return output_1 > output_2 ? 0 : 1;
+        }
+
+        // Convert normalized coords to canvas coords
+        function toCanvasX(normX) {
+            return ((normX - MIN_COORD) / COORD_RANGE) * width;
+        }
+
+        function toCanvasY(normY) {
+            return height - ((normY - MIN_COORD) / COORD_RANGE) * height;
+        }
+
+        // Convert canvas coords to normalized
+        function toNormX(canvasX) {
+            return (canvasX / width) * COORD_RANGE + MIN_COORD;
+        }
+
+        function toNormY(canvasY) {
+            return ((height - canvasY) / height) * COORD_RANGE + MIN_COORD;
+        }
+
+        // Draw the visualization
+        function draw() {
+            const w11 = parseFloat(w11Slider.value);
+            const w21 = parseFloat(w21Slider.value);
+            const w12 = parseFloat(w12Slider.value);
+            const w22 = parseFloat(w22Slider.value);
+            const b1 = parseFloat(b1Slider.value);
+            const b2 = parseFloat(b2Slider.value);
+
+            // Decision boundary: output_1 = output_2
+            // x * w11 + y * w21 + b1 = x * w12 + y * w22 + b2
+            // x * (w11 - w12) + y * (w21 - w22) = b2 - b1
+            // y = (x * (w12 - w11) + (b2 - b1)) / (w21 - w22)
+            const denom = w21 - w22;
+            const slope = Math.abs(denom) > 0.001 ? (w12 - w11) / denom : 1000;
+            const intercept = Math.abs(denom) > 0.001 ? (b2 - b1) / denom : 0;
+
+            // Calculate line intersection points with canvas edges
+            const originX = toCanvasX(0);
+            const originY = toCanvasY(0);
+
+            // Line: y = slope * x + intercept
+            // Find where it intersects canvas boundaries
+            const linePoints = [];
+
+            // Check all 4 edges
+            const edges = [
+                { x: MIN_COORD, y: MIN_COORD * slope + intercept },
+                { x: MAX_COORD, y: MAX_COORD * slope + intercept },
+                { x: (MIN_COORD - intercept) / slope, y: MIN_COORD },
+                { x: (MAX_COORD - intercept) / slope, y: MAX_COORD }
+            ];
+
+            edges.forEach(p => {
+                if (p.x >= MIN_COORD && p.x <= MAX_COORD && p.y >= MIN_COORD && p.y <= MAX_COORD) {
+                    linePoints.push(p);
+                }
+            });
+
+            // Determine which region is "safe" (output_1 > output_2)
+            // Test a point: (1, 0) -> output_1 = w11 + b1, output_2 = w12 + b2
+            const testSafe = (w11 + b1) > (w12 + b2);
+
+            // Fill the entire canvas with one color, then draw the other region
+            ctx.fillStyle = testSafe ? '#4682b4' : '#a53c3c';
+            ctx.fillRect(0, 0, width, height);
+
+            // Draw the other region as a polygon
+            ctx.fillStyle = testSafe ? '#a53c3c' : '#4682b4';
+            ctx.beginPath();
+
+            if (linePoints.length >= 2) {
+                // Sort points by angle from origin for proper polygon
+                const p1 = linePoints[0];
+                const p2 = linePoints[1];
+
+                // Build polygon: line + corners on one side
+                ctx.moveTo(toCanvasX(p1.x), toCanvasY(p1.y));
+                ctx.lineTo(toCanvasX(p2.x), toCanvasY(p2.y));
+
+                // Add corners based on which side should be filled
+                // The "other" side is where output_2 > output_1
+                // Test which corners are on that side
+                const corners = [
+                    { x: MIN_COORD, y: MAX_COORD },
+                    { x: MAX_COORD, y: MAX_COORD },
+                    { x: MAX_COORD, y: MIN_COORD },
+                    { x: MIN_COORD, y: MIN_COORD }
+                ];
+
+                const otherSideCorners = corners.filter(c => {
+                    const o1 = c.x * w11 + c.y * w21 + b1;
+                    const o2 = c.x * w12 + c.y * w22 + b2;
+                    return testSafe ? (o2 > o1) : (o1 > o2);
+                });
+
+                // Sort corners by angle for proper polygon winding
+                otherSideCorners.sort((a, b) => {
+                    return Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x);
+                });
+
+                otherSideCorners.forEach(c => {
+                    ctx.lineTo(toCanvasX(c.x), toCanvasY(c.y));
+                });
+
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Draw grid lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 10; i++) {
+                const x = (width / 10) * i;
+                const y = (height / 10) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+
+            // Draw axes through origin
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(originX, 0);
+            ctx.lineTo(originX, height);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, originY);
+            ctx.lineTo(width, originY);
+            ctx.stroke();
+
+            // Draw decision boundary line
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            if (linePoints.length >= 2) {
+                ctx.moveTo(toCanvasX(linePoints[0].x), toCanvasY(linePoints[0].y));
+                ctx.lineTo(toCanvasX(linePoints[1].x), toCanvasY(linePoints[1].y));
+            }
+            ctx.stroke();
+
+            // Draw fruit data points
+            fruits.forEach(fruit => {
+                ctx.beginPath();
+                ctx.arc(toCanvasX(fruit.normX), toCanvasY(fruit.normY), 8, 0, Math.PI * 2);
+                ctx.fillStyle = fruit.safe ? safeDotColor : poisonDotColor;
+                ctx.fill();
+            });
+
+            // Draw origin marker
+            ctx.beginPath();
+            ctx.arc(originX, originY, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+        }
+
+        // Update display values and redraw
+        function update() {
+            w11Val.textContent = parseFloat(w11Slider.value).toFixed(2);
+            w21Val.textContent = parseFloat(w21Slider.value).toFixed(2);
+            w12Val.textContent = parseFloat(w12Slider.value).toFixed(2);
+            w22Val.textContent = parseFloat(w22Slider.value).toFixed(2);
+            b1Val.textContent = parseFloat(b1Slider.value).toFixed(2);
+            b2Val.textContent = parseFloat(b2Slider.value).toFixed(2);
+            draw();
+        }
+
+        // Event listeners
+        w11Slider.addEventListener('input', update);
+        w21Slider.addEventListener('input', update);
+        w12Slider.addEventListener('input', update);
+        w22Slider.addEventListener('input', update);
+        b1Slider.addEventListener('input', update);
+        b2Slider.addEventListener('input', update);
+
+        // Initial draw
+        update();
+    </script>
+</body>
+</html>

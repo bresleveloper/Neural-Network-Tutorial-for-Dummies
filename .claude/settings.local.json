@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(copy \"C:\\Users\\Ariel\\source\\playground\\NeuralNetwork\\html\\01_rotation_weights.html\" \"C:\\Users\\Ariel\\source\\playground\\NeuralNetwork\\html\\02_bias.html\")",
+      "Bash(copy \"C:\\Users\\Ariel\\source\\playground\\NeuralNetwork\\html\\03_hidden_layer.html\" \"C:\\Users\\Ariel\\source\\playground\\NeuralNetwork\\html\\04_learn_alone.html\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
