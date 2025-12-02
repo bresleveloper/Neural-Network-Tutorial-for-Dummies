@@ -1,7 +1,5 @@
 
-# How AI works ? How NEURAL NETWORKS works
-
-**the neural networks tutorial for dummies**
+# How AI works? How NEURAL NETWORKS works?  tutorial for dummies...
 
 this project is about to demonstrate how neural networks work.
 
