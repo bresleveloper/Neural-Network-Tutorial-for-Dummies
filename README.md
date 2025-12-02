@@ -7,16 +7,16 @@ this project is about to demonstrate how neural networks work.
 
 ## pages / lessions
 
-[Page 1 Link](/html/01_rotation_weights.html) - **the 1st page**  is about just showing a "map" of items that needs cognitive decision for categorizing, most basic Neural Network with only inputs and outputs
+[Page 1 Link](https://bresleveloper.github.io/Neural-Network-Tutorial-for-Dummies/html/01_rotation_weights.html) - **the 1st page**  is about just showing a "map" of items that needs cognitive decision for categorizing, most basic Neural Network with only inputs and outputs
 
 
-[Page 2 Link](/html/02_bias.html) - **the 2nd page** is about improving the Neural Network by adding bias, enabling to extend the categorizing decision.
+[Page 2 Link](https://bresleveloper.github.io/Neural-Network-Tutorial-for-Dummies/html/02_bias.html) - **the 2nd page** is about improving the Neural Network by adding bias, enabling to extend the categorizing decision.
 
 
-[Page 3 Link](/html/03_hidden_layer.html) - **the 3rd page** is about improving the Neural Network by adding hidden layer so we can make non-linear decisions.
+[Page 3 Link](https://bresleveloper.github.io/Neural-Network-Tutorial-for-Dummies/html/03_hidden_layer.html) - **the 3rd page** is about improving the Neural Network by adding hidden layer so we can make non-linear decisions.
 
 
-[Page 4 Link](/html/04_learn_alone.html) - **the 4th page** is about letting Neural Network learn alone
+[Page 4 Link](https://bresleveloper.github.io/Neural-Network-Tutorial-for-Dummies/html/04_learn_alone.html) - **the 4th page** is about letting Neural Network learn alone
 
 
 ## coding?
